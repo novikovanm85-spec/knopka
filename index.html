@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Брейн-Ринг | Виртуальная кнопка</title>
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (исправленные ссылки) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -26,7 +26,6 @@
             padding: 20px;
         }
 
-        /* Главный экран ведущего */
         .host-screen {
             max-width: 1200px;
             width: 100%;
@@ -54,22 +53,14 @@
             backdrop-filter: blur(4px);
             transition: all 0.2s ease;
             border: 2px solid rgba(255,255,255,0.1);
-            cursor: pointer;
         }
 
-        .team-card.active {
-            transform: scale(1.02);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.2), 0 20px 35px -10px black;
-        }
-
-        /* Красная команда */
         .team-a.active {
             background: linear-gradient(145deg, #8b0000, #4a0000);
             border-color: #ff4444;
             box-shadow: 0 0 35px rgba(255,68,68,0.6);
         }
 
-        /* Синяя команда */
         .team-b.active {
             background: linear-gradient(145deg, #003c8b, #001a4a);
             border-color: #4488ff;
@@ -185,14 +176,12 @@
     </div>
 
     <div class="arena">
-        <!-- Команда А (Красные) -->
         <div class="team-card team-a" id="teamACard">
             <div class="team-name">🔴 КОМАНДА A</div>
             <div class="buzzer-status" id="teamAStatus">⏳ Ожидание нажатия</div>
             <div class="winner-glow" id="teamAGlow"></div>
         </div>
 
-        <!-- Команда B (Синие) -->
         <div class="team-card team-b" id="teamBCard">
             <div class="team-name">🔵 КОМАНДА B</div>
             <div class="buzzer-status" id="teamBStatus">⏳ Ожидание нажатия</div>
@@ -222,14 +211,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-    // ======================= НАСТРОЙКА FIREBASE =======================
-    // ЭТО БЕСПЛАТНАЯ ДЕМО-БАЗА (ОБЩАЯ ДЛЯ ВСЕХ, КТО ТЕСТИРУЕТ)
-    // ВАЖНО: для реального мероприятия создайте свою базу в Firebase (3 клика)
+    // ========== НАСТРОЙКА FIREBASE ==========
+    // Бесплатная демо-база для тестирования
     const firebaseConfig = {
         databaseURL: "https://brain-ring-default-rtdb.firebaseio.com/"
     };
     
-    // Инициализация Firebase (без ключа, только база)
+    // Инициализация Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -237,8 +225,8 @@
     const buzzRef = database.ref('/buzzer');
     
     // Состояние игры
-    let locked = false;      // false = можно нажимать, true = кто-то уже нажал
-    let winner = null;       // 'A' или 'B'
+    let locked = false;
+    let winner = null;
     
     // DOM элементы
     const teamACard = document.getElementById('teamACard');
@@ -249,7 +237,6 @@
     const teamBGlow = document.getElementById('teamBGlow');
     const resetBtn = document.getElementById('resetBtn');
     
-    // Функция обновления UI для ведущего
     function updateUI() {
         if (winner === 'A') {
             teamACard.classList.add('active');
@@ -277,14 +264,12 @@
         }
     }
     
-    // Слушаем изменения в Firebase (кто нажал)
+    // Слушаем изменения в Firebase
     buzzRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
         
-        // Если система ещё не заблокирована (locked == false) и пришёл winner
         if (!locked && data.winner && data.timestamp) {
-            // Защита от старых сигналов (принимаем только если нажатие за последние 5 секунд)
             const now = Date.now();
             if (now - data.timestamp < 5000) {
                 winner = data.winner;
@@ -294,33 +279,27 @@
         }
     });
     
-    // Функция сброса (очистить)
     function resetGame() {
         locked = false;
         winner = null;
-        // Очищаем базу, чтобы новые нажатия обрабатывались
         buzzRef.set({ winner: null, timestamp: null });
         updateUI();
     }
     
-    // Кнопка очистки
     resetBtn.addEventListener('click', () => {
         resetGame();
     });
     
-    // Генерация ссылок и QR-кодов для команд (динамические)
+    // Генерация QR-кодов
     const baseUrl = window.location.href.split('?')[0].split('#')[0];
-    // Убираем index.html в конце, если есть
     const cleanBase = baseUrl.endsWith('index.html') ? baseUrl.replace('index.html', '') : baseUrl;
     
-    // Формируем ссылки для команд
     const teamAUrl = `${cleanBase}?team=A`;
     const teamBUrl = `${cleanBase}?team=B`;
     
     document.getElementById('linkA').innerText = teamAUrl;
     document.getElementById('linkB').innerText = teamBUrl;
     
-    // Генерация QR
     new QRCode(document.getElementById("qrcodeA"), {
         text: teamAUrl,
         width: 160,
@@ -338,12 +317,11 @@
         correctLevel: QRCode.CorrectLevel.H
     });
     
-    // Если в URL есть параметр team= A или B — значит это телефон участника
+    // ========== ЭКРАН ДЛЯ ТЕЛЕФОНА ==========
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get('team');
     
     if (teamParam === 'A' || teamParam === 'B') {
-        // ПОЛНОЦЕННЫЙ ЭКРАН ДЛЯ ТЕЛЕФОНА (игровая кнопка)
         document.body.innerHTML = '';
         document.body.style.background = teamParam === 'A' ? '#3a0808' : '#07122e';
         document.body.style.margin = '0';
@@ -394,7 +372,7 @@
         loadingMsg.style.marginTop = '20px';
         loadingMsg.style.fontSize = '0.9rem';
         loadingMsg.style.color = '#ffaa66';
-        loadingMsg.innerText = '🔄 Соединение...';
+        loadingMsg.innerText = '🔄 Подключение...';
         
         container.appendChild(title);
         container.appendChild(buzzBtn);
@@ -402,15 +380,12 @@
         container.appendChild(loadingMsg);
         document.body.appendChild(container);
         
-        // Отслеживаем, свободна ли система (заблокирована или нет)
         let canBuzz = true;
         let localLock = false;
         
-        // Подписка на изменения в Firebase (узнаём, когда очистили)
         buzzRef.on('value', (snap) => {
             const data = snap.val();
             if (data && !data.winner) {
-                // Ведущий очистил кнопки -> можно нажимать снова
                 canBuzz = true;
                 localLock = false;
                 loadingMsg.innerText = '✅ Готов к нажатию!';
@@ -418,14 +393,12 @@
                 buzzBtn.disabled = false;
                 buzzBtn.style.opacity = '1';
             } else if (data && data.winner && data.winner === teamParam) {
-                // Эта команда победила в текущем раунде
                 loadingMsg.innerText = '🏆 ВАША КОМАНДА ОТВЕЧАЕТ! Ждите следующий вопрос.';
                 loadingMsg.style.color = '#ffdd77';
                 buzzBtn.disabled = true;
                 buzzBtn.style.opacity = '0.6';
                 canBuzz = false;
             } else if (data && data.winner && data.winner !== teamParam) {
-                // Соперник нажал первым
                 loadingMsg.innerText = '❌ Соперник нажал быстрее... Ждите очистки.';
                 loadingMsg.style.color = '#ff8888';
                 buzzBtn.disabled = true;
@@ -434,7 +407,6 @@
             }
         });
         
-        // Функция нажатия
         async function sendBuzz() {
             if (!canBuzz || localLock) {
                 statusMsg.innerText = '⛔ Уже кто-то нажал! Дождитесь очистки.';
@@ -442,7 +414,6 @@
                 return;
             }
             
-            // Проверяем последний статус в Firebase (на случай гонки)
             const snapshot = await buzzRef.once('value');
             const current = snapshot.val();
             if (current && current.winner && current.winner !== null) {
@@ -475,13 +446,11 @@
         }
         
         buzzBtn.addEventListener('click', sendBuzz);
-        // Анимация нажатия
         buzzBtn.addEventListener('mousedown', () => { buzzBtn.style.transform = 'scale(0.96)'; });
         buzzBtn.addEventListener('mouseup', () => { buzzBtn.style.transform = 'scale(1)'; });
         buzzBtn.addEventListener('touchstart', () => { buzzBtn.style.transform = 'scale(0.96)'; });
         buzzBtn.addEventListener('touchend', () => { buzzBtn.style.transform = 'scale(1)'; });
         
-        // Первоначальная проверка, не заблокирована ли игра
         buzzRef.once('value').then((snap) => {
             const data = snap.val();
             if (data && data.winner) {
@@ -497,9 +466,7 @@
         });
     }
     
-    // Если на основном экране, показываем стандартный вид
     if (!teamParam) {
-        // дополнительный сброс при загрузке
         resetGame();
         console.log('Режим ведущего: QR-коды активны');
     }
