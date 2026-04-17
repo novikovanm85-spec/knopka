@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Брейн-Ринг | Таймер + Звуки старт/конец</title>
+    <title>Брейн-Ринг | Таймер + Длинные звуки старт/конец</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -114,7 +114,7 @@
 </div>
 
 <script>
-    // ========== ЗВУКИ ==========
+    // ========== ЗВУКИ (ДЛИННЫЕ) ==========
     let audioCtx = null;
     
     function initAudio() {
@@ -123,56 +123,104 @@
         return audioCtx;
     }
     
-    // Призывный звук на старт (две ноты вверх: ля → до)
+    // ПРИЗЫВНЫЙ ЗВУК НА СТАРТ (длинный, 2.5 секунды)
+    // Три ноты: до-ми-соль (растущий сигнал)
     function playStartSound() {
         try {
             const ctx = initAudio();
             const now = ctx.currentTime;
             
-            // Первая нота (ля, 880 Гц)
+            // Нота 1: до (523 Гц) — 0.4 сек
             const osc1 = ctx.createOscillator();
             const gain1 = ctx.createGain();
             osc1.connect(gain1);
             gain1.connect(ctx.destination);
-            osc1.frequency.value = 880;
-            gain1.gain.value = 0.3;
+            osc1.frequency.value = 523.25;
+            gain1.gain.value = 0.25;
             osc1.start();
-            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.4);
-            osc1.stop(now + 0.4);
+            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.5);
+            osc1.stop(now + 0.5);
             
-            // Вторая нота (до, 523 Гц) через 0.2 секунды
+            // Нота 2: ми (659 Гц) — старт через 0.35 сек, длительность 0.6 сек
             const osc2 = ctx.createOscillator();
             const gain2 = ctx.createGain();
             osc2.connect(gain2);
             gain2.connect(ctx.destination);
-            osc2.frequency.value = 523.25;
+            osc2.frequency.value = 659.25;
             gain2.gain.value = 0.3;
-            osc2.start(now + 0.2);
-            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.6);
-            osc2.stop(now + 0.6);
+            osc2.start(now + 0.35);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.95);
+            osc2.stop(now + 0.95);
+            
+            // Нота 3: соль (784 Гц) — старт через 0.8 сек, длительность 0.8 сек
+            const osc3 = ctx.createOscillator();
+            const gain3 = ctx.createGain();
+            osc3.connect(gain3);
+            gain3.connect(ctx.destination);
+            osc3.frequency.value = 783.99;
+            gain3.gain.value = 0.35;
+            osc3.start(now + 0.8);
+            gain3.gain.exponentialRampToValueAtTime(0.00001, now + 1.6);
+            osc3.stop(now + 1.6);
+            
+            // Затухающий фон (для объёма)
+            const oscBg = ctx.createOscillator();
+            const gainBg = ctx.createGain();
+            oscBg.connect(gainBg);
+            gainBg.connect(ctx.destination);
+            oscBg.frequency.value = 392;
+            gainBg.gain.value = 0.1;
+            oscBg.start(now + 0.1);
+            gainBg.gain.exponentialRampToValueAtTime(0.00001, now + 1.8);
+            oscBg.stop(now + 1.8);
             
             ctx.resume();
         } catch(e) { console.log("Звук старта не поддерживается"); }
     }
     
-    // Противный звук на истечение времени (низкий гул с детуном)
+    // ПРОТИВНЫЙ ЗВУК НА ОКОНЧАНИЕ ВРЕМЕНИ (3 секунды, низкий гул с детуном)
     function playTimeoutSound() {
         try {
             const ctx = initAudio();
             const now = ctx.currentTime;
             
+            // Основной противный звук (низкий, с падением частоты)
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.frequency.value = 220; // нота Ля малой октавы (низко)
-            osc.type = 'sawtooth'; // пилообразная волна — более резкий, противный звук
+            osc.frequency.value = 150;
+            osc.type = 'sawtooth';
             gain.gain.value = 0.4;
             osc.start();
-            // Медленное затухание с детуном (снижение частоты)
-            gain.gain.exponentialRampToValueAtTime(0.00001, now + 1.5);
-            osc.frequency.exponentialRampToValueAtTime(110, now + 1.2);
-            osc.stop(now + 1.5);
+            gain.gain.exponentialRampToValueAtTime(0.00001, now + 2.8);
+            osc.frequency.exponentialRampToValueAtTime(60, now + 2.5);
+            osc.stop(now + 2.8);
+            
+            // Второй осциллятор для "сирены" (биения)
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.frequency.value = 140;
+            osc2.type = 'square';
+            gain2.gain.value = 0.25;
+            osc2.start();
+            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 2.5);
+            osc2.frequency.exponentialRampToValueAtTime(50, now + 2.2);
+            osc2.stop(now + 2.5);
+            
+            // Низкий гул (бас)
+            const osc3 = ctx.createOscillator();
+            const gain3 = ctx.createGain();
+            osc3.connect(gain3);
+            gain3.connect(ctx.destination);
+            osc3.frequency.value = 80;
+            osc3.type = 'sine';
+            gain3.gain.value = 0.3;
+            osc3.start();
+            gain3.gain.exponentialRampToValueAtTime(0.00001, now + 2.8);
+            osc3.stop(now + 2.8);
             
             ctx.resume();
         } catch(e) { console.log("Звук таймаута не поддерживается"); }
@@ -210,7 +258,7 @@
     let gameLocked = false;
     let foulA = false, foulB = false;
     let winner = null;
-    let timeoutPlayed = false; // чтобы звук не повторялся
+    let timeoutPlayed = false;
     
     const timerDisplay = document.getElementById('timerDisplay');
     const startTimerBtn = document.getElementById('startTimerBtn');
@@ -222,8 +270,7 @@
         timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         timerDisplay.style.color = timeLeft <= 0 ? '#ff6666' : '#0f0';
         
-        // Если время истекло и звук ещё не играл
-        if (timeLeft <= 0 && !timeoutPlayed && !gameLocked) {
+        if (timeLeft <= 0 && !timeoutPlayed && !gameLocked && !isTimerRunning) {
             timeoutPlayed = true;
             playTimeoutSound();
         }
@@ -243,7 +290,7 @@
         }
         isTimerRunning = true;
         timeoutPlayed = false;
-        playStartSound(); // 🔊 ПРИЗЫВНЫЙ ЗВУК ПРИ СТАРТЕ
+        playStartSound();
         timerInterval = setInterval(() => {
             if (isTimerRunning && timeLeft > 0) {
                 timeLeft--;
