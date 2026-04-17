@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Брейн-Ринг | Громкий сигнал</title>
+    <title>Брейн-Ринг | Короткий сигнал 0.8 сек</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -84,7 +84,7 @@
 </div>
 
 <script>
-    // ========== ЗВУКИ (длинный громкий сигнал "БИИИИИ", без затухания) ==========
+    // ========== ЗВУКИ (короткий громкий сигнал "БИИИИИ", 0.8 сек) ==========
     let audioCtx = null;
     function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
     
@@ -92,7 +92,7 @@
         try {
             const ctx = initAudio();
             const now = ctx.currentTime;
-            const duration = 4.5;
+            const duration = 0.8;
             
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
