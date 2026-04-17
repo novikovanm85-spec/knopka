@@ -3,14 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Брейн-Ринг | Таймер + Фальстарт</title>
+    <title>Брейн-Ринг | Таймер + Фальстарт + Fullscreen</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', system-ui; background: #0a0c15; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .host-screen { max-width: 1300px; width: 100%; background: linear-gradient(145deg, #0f121c, #07090f); border-radius: 64px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); }
+        .host-screen { max-width: 1300px; width: 100%; background: linear-gradient(145deg, #0f121c, #07090f); border-radius: 64px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); position: relative; }
+        
+        /* Кнопка полноэкранного режима */
+        .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            backdrop-filter: blur(4px);
+            z-index: 100;
+        }
+        .fullscreen-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.02); }
+        .fullscreen-btn:active { transform: scale(0.98); }
         
         /* Таймер */
         .timer-panel { background: #00000030; border-radius: 60px; padding: 20px 30px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; border: 1px solid rgba(255,255,255,0.1); }
@@ -19,7 +39,6 @@
         .timer-btn { background: #2a2e45; border: none; color: white; font-size: 1.2rem; font-weight: bold; padding: 12px 28px; border-radius: 40px; cursor: pointer; transition: 0.1s; font-family: inherit; }
         .timer-btn:active { transform: scale(0.96); }
         .timer-btn.start { background: #2e7d32; }
-        .timer-btn.start:hover { background: #1b5e20; }
         .timer-btn.reset { background: #b71c1c; }
         
         /* Арена */
@@ -42,11 +61,26 @@
         .qr-item canvas { background: white; padding: 12px; border-radius: 28px; width: 180px; height: 180px; margin: 10px auto; }
         .qr-link { font-size: 12px; word-break: break-all; color: #aaa; margin-top: 10px; }
         .status-led { display: inline-block; width: 14px; height: 14px; border-radius: 14px; background: #2ecc71; box-shadow: 0 0 6px #2ecc71; margin-right: 10px; }
-        @media (max-width: 750px) { .host-screen { padding: 20px; } .team-name { font-size: 1.8rem; } .team-card { padding: 24px 16px; } .qr-item canvas { width: 130px; height: 130px; } .timer-display { font-size: 2.5rem; } }
+        
+        @media (max-width: 750px) {
+            .host-screen { padding: 20px; }
+            .team-name { font-size: 1.8rem; }
+            .team-card { padding: 24px 16px; }
+            .qr-item canvas { width: 130px; height: 130px; }
+            .timer-display { font-size: 2.5rem; }
+            .fullscreen-btn { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+        }
+        
+        /* Полноэкранный режим — убираем отступы */
+        :-webkit-full-screen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; height: 100vh; overflow-y: auto; }
+        :-moz-full-screen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; }
+        :fullscreen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; height: 100vh; overflow-y: auto; }
     </style>
 </head>
 <body>
 <div class="host-screen">
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶ На весь экран</button>
+    
     <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 20px;">
         <h1 style="font-size: 2rem;">🎤 Брейн-Ринг</h1>
         <div><span class="status-led"></span> Онлайн | Кто нажмёт первым?</div>
@@ -86,6 +120,33 @@
 </div>
 
 <script>
+    // ========== ПОЛНОЭКРАННЫЙ РЕЖИМ ==========
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const rootElement = document.documentElement;
+    
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            rootElement.requestFullscreen().catch(err => {
+                console.warn(`Ошибка fullscreen: ${err.message}`);
+            });
+            fullscreenBtn.textContent = '✖ Выйти';
+        } else {
+            document.exitFullscreen();
+            fullscreenBtn.textContent = '⛶ На весь экран';
+        }
+    }
+    
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    
+    // Следим за изменением полноэкранного режима (например, при нажатии Esc)
+    document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement) {
+            fullscreenBtn.textContent = '✖ Выйти';
+        } else {
+            fullscreenBtn.textContent = '⛶ На весь экран';
+        }
+    });
+    
     // ========== FIREBASE ==========
     const firebaseConfig = { databaseURL: "https://knopka-e92fb-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -95,9 +156,9 @@
     
     // ========== ТАЙМЕР ==========
     let timerInterval = null;
-    let timeLeft = 60; // секунд
+    let timeLeft = 60;
     let isTimerRunning = false;
-    let gameLocked = false;  // true = кто-то уже нажал и ответил
+    let gameLocked = false;
     let foulA = false, foulB = false;
     let winner = null;
     
@@ -109,8 +170,7 @@
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
         timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        if (timeLeft <= 0) timerDisplay.style.color = '#ff6666';
-        else timerDisplay.style.color = '#0f0';
+        timerDisplay.style.color = timeLeft <= 0 ? '#ff6666' : '#0f0';
     }
     
     function stopTimer() {
@@ -126,10 +186,7 @@
             if (isTimerRunning && timeLeft > 0) {
                 timeLeft--;
                 updateTimerDisplay();
-                if (timeLeft <= 0) {
-                    stopTimer();
-                    timerDisplay.textContent = "00:00";
-                }
+                if (timeLeft <= 0) stopTimer();
             }
         }, 1000);
     }
@@ -183,36 +240,30 @@
         updateUI();
     }
     
-    // Слушаем нажатия с телефонов
     buzzRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data || !data.winner || !data.timestamp) return;
-        if (gameLocked) return; // уже кто-то ответил
+        if (gameLocked) return;
         
         const now = Date.now();
-        if (now - data.timestamp > 5000) return; // старый сигнал
+        if (now - data.timestamp > 5000) return;
         
         const team = data.winner;
         
-        // ФАЛЬСТАРТ: если таймер не запущен ИЛИ таймер на 60 (не начали) ИЛИ игра не началась
         if (!isTimerRunning || timeLeft === 60) {
             if (team === 'A') foulA = true;
             else foulB = true;
             updateUI();
-            buzzRef.set({ winner: null, timestamp: null, foul: team }); // сбрасываем, чтобы не блокировать
+            buzzRef.set({ winner: null, timestamp: null, foul: team });
             return;
         }
         
-        // Если уже есть фальстарт у этой команды — не даём отвечать
-        if ((team === 'A' && foulA) || (team === 'B' && foulB)) {
-            return;
-        }
+        if ((team === 'A' && foulA) || (team === 'B' && foulB)) return;
         
-        // Нормальное нажатие
         if (!gameLocked) {
             gameLocked = true;
             winner = team;
-            stopTimer(); // останавливаем таймер
+            stopTimer();
             updateUI();
             gameStateRef.set({ locked: true, winner: team });
         }
@@ -254,10 +305,8 @@
         container.appendChild(title); container.appendChild(buzzBtn); container.appendChild(statusMsg); container.appendChild(loadingMsg);
         document.body.appendChild(container);
         
-        let canBuzz = true, localLock = false;
-        let foulDetected = false;
+        let canBuzz = true, localLock = false, foulDetected = false;
         
-        // Слушаем состояние игры (фальстарты)
         gameStateRef.on('value', (snap) => {
             const data = snap.val();
             if (data && data.locked && data.winner === teamParam) {
