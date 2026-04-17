@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Брейн-Ринг | Таймер + Длинные звуки старт/конец</title>
+    <title>Брейн-Ринг | Продолжить тур + Новые звуки</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,34 +13,24 @@
         .host-screen { max-width: 1300px; width: 100%; background: linear-gradient(145deg, #0f121c, #07090f); border-radius: 64px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); position: relative; }
         
         .fullscreen-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            font-size: 1.2rem;
-            padding: 10px 18px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            backdrop-filter: blur(4px);
-            z-index: 100;
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; font-size: 1.2rem; padding: 10px 18px; border-radius: 40px;
+            cursor: pointer; font-family: inherit; backdrop-filter: blur(4px); z-index: 100;
         }
         .fullscreen-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.02); }
-        .fullscreen-btn:active { transform: scale(0.98); }
         
-        .timer-panel { background: #00000030; border-radius: 60px; padding: 20px 30px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .timer-display { font-size: 4rem; font-weight: 800; font-family: monospace; letter-spacing: 5px; background: #00000050; padding: 10px 30px; border-radius: 50px; color: #0f0; text-shadow: 0 0 10px #0f0; }
-        .timer-controls { display: flex; gap: 15px; }
-        .timer-btn { background: #2a2e45; border: none; color: white; font-size: 1.2rem; font-weight: bold; padding: 12px 28px; border-radius: 40px; cursor: pointer; transition: 0.1s; font-family: inherit; }
+        .timer-panel { background: #00000030; border-radius: 60px; padding: 20px 30px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .timer-display { font-size: 4rem; font-weight: 800; font-family: monospace; background: #00000050; padding: 10px 30px; border-radius: 50px; color: #0f0; text-shadow: 0 0 10px #0f0; }
+        .timer-controls { display: flex; gap: 15px; flex-wrap: wrap; }
+        .timer-btn { background: #2a2e45; border: none; color: white; font-size: 1.2rem; font-weight: bold; padding: 12px 28px; border-radius: 40px; cursor: pointer; font-family: inherit; }
         .timer-btn:active { transform: scale(0.96); }
         .timer-btn.start { background: #2e7d32; }
         .timer-btn.reset { background: #b71c1c; }
+        .timer-btn.continue { background: #ff9800; color: #1a1a2e; }
         
         .arena { display: flex; flex-wrap: wrap; gap: 30px; margin: 30px 0; }
-        .team-card { flex: 1; min-width: 260px; background: rgba(20,22,36,0.7); border-radius: 48px; padding: 40px 24px; text-align: center; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; position: relative; }
+        .team-card { flex: 1; min-width: 260px; background: rgba(20,22,36,0.7); border-radius: 48px; padding: 40px 24px; text-align: center; border: 2px solid rgba(255,255,255,0.1); position: relative; }
         .team-a.active { background: linear-gradient(145deg, #8b0000, #4a0000); border-color: #ff4444; box-shadow: 0 0 35px rgba(255,68,68,0.6); }
         .team-b.active { background: linear-gradient(145deg, #003c8b, #001a4a); border-color: #4488ff; box-shadow: 0 0 35px rgba(68,136,255,0.6); }
         .team-name { font-size: 2.5rem; font-weight: 800; }
@@ -49,8 +39,9 @@
         .foul-badge { position: absolute; top: 20px; right: 20px; background: #ff0000; color: white; font-weight: bold; padding: 8px 16px; border-radius: 30px; font-size: 0.9rem; }
         .buzzer-status { margin-top: 20px; color: #aaa; }
         .winner-glow { font-size: 1.4rem; font-weight: bold; margin-top: 15px; }
-        .reset-btn { background: #2a2e45; border: none; color: white; font-size: 1.4rem; font-weight: bold; padding: 16px 40px; border-radius: 60px; width: 100%; cursor: pointer; margin-top: 20px; font-family: inherit; }
-        .reset-btn:active { transform: scale(0.97); background: #1e2132; }
+        .reset-btn, .continue-btn { background: #2a2e45; border: none; color: white; font-size: 1.4rem; font-weight: bold; padding: 16px 40px; border-radius: 60px; width: 100%; cursor: pointer; margin-top: 20px; font-family: inherit; }
+        .continue-btn { background: #ff9800; color: #1a1a2e; margin-top: 10px; }
+        .reset-btn:active, .continue-btn:active { transform: scale(0.97); }
         
         .qr-panel { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px; padding-top: 30px; border-top: 2px dashed rgba(255,255,255,0.15); justify-content: center; }
         .qr-item { background: #ffffff10; border-radius: 32px; padding: 20px; text-align: center; flex: 1; }
@@ -61,14 +52,9 @@
         @media (max-width: 750px) {
             .host-screen { padding: 20px; }
             .team-name { font-size: 1.8rem; }
-            .team-card { padding: 24px 16px; }
-            .qr-item canvas { width: 130px; height: 130px; }
             .timer-display { font-size: 2.5rem; }
             .fullscreen-btn { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
         }
-        
-        :-webkit-full-screen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; height: 100vh; overflow-y: auto; }
-        :-moz-full-screen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; }
         :fullscreen .host-screen { max-width: 100%; border-radius: 0; padding: 20px; height: 100vh; overflow-y: auto; }
     </style>
 </head>
@@ -85,7 +71,7 @@
         <div class="timer-display" id="timerDisplay">01:00</div>
         <div class="timer-controls">
             <button class="timer-btn start" id="startTimerBtn">▶ СТАРТ</button>
-            <button class="timer-btn reset" id="resetTimerBtn">🔄 СБРОС</button>
+            <button class="timer-btn reset" id="resetTimerBtn">🔄 СБРОС ТАЙМЕРА</button>
         </div>
     </div>
     
@@ -104,142 +90,80 @@
         </div>
     </div>
     
-    <button class="reset-btn" id="resetBtn">🔄 ОЧИСТИТЬ / НОВЫЙ ВОПРОС</button>
+    <button class="continue-btn" id="continueBtn">▶ ПРОДОЛЖИТЬ (неправильный ответ)</button>
+    <button class="reset-btn" id="resetBtn">🔄 ОЧИСТИТЬ ВСЁ (новый вопрос)</button>
     
     <div class="qr-panel">
-        <div class="qr-item"><strong>🔴 КОМАНДА A</strong><div id="qrcodeA"></div><div class="qr-link" id="linkA"></div><p>Сканируйте телефоном → кнопка</p></div>
-        <div class="qr-item"><strong>🔵 КОМАНДА B</strong><div id="qrcodeB"></div><div class="qr-link" id="linkB"></div><p>Сканируйте телефоном → кнопка</p></div>
+        <div class="qr-item"><strong>🔴 КОМАНДА A</strong><div id="qrcodeA"></div><div class="qr-link" id="linkA"></div><p>Сканируйте телефоном</p></div>
+        <div class="qr-item"><strong>🔵 КОМАНДА B</strong><div id="qrcodeB"></div><div class="qr-link" id="linkB"></div><p>Сканируйте телефоном</p></div>
     </div>
-    <footer style="margin-top: 30px; font-size: 12px; text-align: center; opacity: 0.7;">Нажмите СТАРТ → 60 секунд. Нажатие до старта = ФАЛЬСТАРТ!</footer>
+    <footer style="margin-top: 30px; font-size: 12px; text-align: center; opacity: 0.7;">СТАРТ → 60 сек. Неправильный ответ? → ПРОДОЛЖИТЬ (таймер продолжается). Новый вопрос → ОЧИСТИТЬ ВСЁ.</footer>
 </div>
 
 <script>
-    // ========== ЗВУКИ (ДЛИННЫЕ) ==========
+    // ========== ЗВУКИ (4 СЕКУНДЫ, БЕЗ ПЕРДЕЖА) ==========
     let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
     
-    function initAudio() {
-        if (audioCtx) return audioCtx;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        return audioCtx;
-    }
-    
-    // ПРИЗЫВНЫЙ ЗВУК НА СТАРТ (длинный, 2.5 секунды)
-    // Три ноты: до-ми-соль (растущий сигнал)
     function playStartSound() {
         try {
             const ctx = initAudio();
             const now = ctx.currentTime;
-            
-            // Нота 1: до (523 Гц) — 0.4 сек
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.frequency.value = 523.25;
-            gain1.gain.value = 0.25;
-            osc1.start();
-            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.5);
-            osc1.stop(now + 0.5);
-            
-            // Нота 2: ми (659 Гц) — старт через 0.35 сек, длительность 0.6 сек
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.frequency.value = 659.25;
-            gain2.gain.value = 0.3;
-            osc2.start(now + 0.35);
-            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.95);
-            osc2.stop(now + 0.95);
-            
-            // Нота 3: соль (784 Гц) — старт через 0.8 сек, длительность 0.8 сек
-            const osc3 = ctx.createOscillator();
-            const gain3 = ctx.createGain();
-            osc3.connect(gain3);
-            gain3.connect(ctx.destination);
-            osc3.frequency.value = 783.99;
-            gain3.gain.value = 0.35;
-            osc3.start(now + 0.8);
-            gain3.gain.exponentialRampToValueAtTime(0.00001, now + 1.6);
-            osc3.stop(now + 1.6);
-            
-            // Затухающий фон (для объёма)
-            const oscBg = ctx.createOscillator();
-            const gainBg = ctx.createGain();
-            oscBg.connect(gainBg);
-            gainBg.connect(ctx.destination);
-            oscBg.frequency.value = 392;
-            gainBg.gain.value = 0.1;
-            oscBg.start(now + 0.1);
-            gainBg.gain.exponentialRampToValueAtTime(0.00001, now + 1.8);
-            oscBg.stop(now + 1.8);
-            
+            // 4 ноты вверх: до-ми-соль-до (бодрый старт)
+            const notes = [261.63, 329.63, 392.00, 523.25];
+            notes.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                gain.gain.value = 0.25;
+                const startTime = now + i * 0.35;
+                osc.start(startTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, startTime + 0.8);
+                osc.stop(startTime + 0.8);
+            });
             ctx.resume();
-        } catch(e) { console.log("Звук старта не поддерживается"); }
+        } catch(e) { console.log("Start sound error"); }
     }
     
-    // ПРОТИВНЫЙ ЗВУК НА ОКОНЧАНИЕ ВРЕМЕНИ (3 секунды, низкий гул с детуном)
     function playTimeoutSound() {
         try {
             const ctx = initAudio();
             const now = ctx.currentTime;
+            // Сигнал "время вышло": короткий писк + низкий гудок (ничего похожего на пердеж)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.frequency.value = 880;
+            gain1.gain.value = 0.3;
+            osc1.start();
+            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.4);
+            osc1.stop(now + 0.4);
             
-            // Основной противный звук (низкий, с падением частоты)
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 150;
-            osc.type = 'sawtooth';
-            gain.gain.value = 0.4;
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, now + 2.8);
-            osc.frequency.exponentialRampToValueAtTime(60, now + 2.5);
-            osc.stop(now + 2.8);
-            
-            // Второй осциллятор для "сирены" (биения)
             const osc2 = ctx.createOscillator();
             const gain2 = ctx.createGain();
             osc2.connect(gain2);
             gain2.connect(ctx.destination);
-            osc2.frequency.value = 140;
-            osc2.type = 'square';
-            gain2.gain.value = 0.25;
-            osc2.start();
-            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 2.5);
-            osc2.frequency.exponentialRampToValueAtTime(50, now + 2.2);
-            osc2.stop(now + 2.5);
-            
-            // Низкий гул (бас)
-            const osc3 = ctx.createOscillator();
-            const gain3 = ctx.createGain();
-            osc3.connect(gain3);
-            gain3.connect(ctx.destination);
-            osc3.frequency.value = 80;
-            osc3.type = 'sine';
-            gain3.gain.value = 0.3;
-            osc3.start();
-            gain3.gain.exponentialRampToValueAtTime(0.00001, now + 2.8);
-            osc3.stop(now + 2.8);
+            osc2.frequency.value = 220;
+            osc2.type = 'sine';
+            gain2.gain.value = 0.35;
+            osc2.start(now + 0.2);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 3.8);
+            osc2.frequency.exponentialRampToValueAtTime(110, now + 3.5);
+            osc2.stop(now + 3.8);
             
             ctx.resume();
-        } catch(e) { console.log("Звук таймаута не поддерживается"); }
+        } catch(e) { console.log("Timeout sound error"); }
     }
     
-    // ========== ПОЛНОЭКРАННЫЙ РЕЖИМ ==========
+    // ========== FULLSCREEN ==========
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const rootElement = document.documentElement;
-    
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            rootElement.requestFullscreen().catch(err => console.warn(err));
-            fullscreenBtn.textContent = '✖ Выйти';
-        } else {
-            document.exitFullscreen();
-            fullscreenBtn.textContent = '⛶ На весь экран';
-        }
-    }
-    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    });
     document.addEventListener('fullscreenchange', () => {
         fullscreenBtn.textContent = document.fullscreenElement ? '✖ Выйти' : '⛶ На весь экран';
     });
@@ -251,43 +175,33 @@
     const buzzRef = database.ref('/buzzer');
     const gameStateRef = database.ref('/gameState');
     
-    // ========== ТАЙМЕР ==========
-    let timerInterval = null;
-    let timeLeft = 60;
-    let isTimerRunning = false;
-    let gameLocked = false;
-    let foulA = false, foulB = false;
-    let winner = null;
+    // ========== ТАЙМЕР И ИГРА ==========
+    let timerInterval = null, timeLeft = 60, isTimerRunning = false;
+    let gameLocked = false, foulA = false, foulB = false, winner = null;
     let timeoutPlayed = false;
     
     const timerDisplay = document.getElementById('timerDisplay');
     const startTimerBtn = document.getElementById('startTimerBtn');
     const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const continueBtn = document.getElementById('continueBtn');
+    const resetBtn = document.getElementById('resetBtn');
     
     function updateTimerDisplay() {
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
         timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         timerDisplay.style.color = timeLeft <= 0 ? '#ff6666' : '#0f0';
-        
         if (timeLeft <= 0 && !timeoutPlayed && !gameLocked && !isTimerRunning) {
             timeoutPlayed = true;
             playTimeoutSound();
         }
     }
     
-    function stopTimer() {
-        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        isTimerRunning = false;
-    }
+    function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } isTimerRunning = false; }
     
     function startTimer() {
         if (timerInterval) stopTimer();
-        if (timeLeft <= 0) { 
-            timeLeft = 60; 
-            timeoutPlayed = false;
-            updateTimerDisplay(); 
-        }
+        if (timeLeft <= 0) { timeLeft = 60; timeoutPlayed = false; updateTimerDisplay(); }
         isTimerRunning = true;
         timeoutPlayed = false;
         playStartSound();
@@ -295,35 +209,48 @@
             if (isTimerRunning && timeLeft > 0) {
                 timeLeft--;
                 updateTimerDisplay();
-                if (timeLeft <= 0) {
-                    stopTimer();
-                    updateTimerDisplay();
-                }
+                if (timeLeft <= 0) { stopTimer(); updateTimerDisplay(); }
             }
         }, 1000);
     }
     
-    function resetTimer() {
-        stopTimer();
-        timeLeft = 60;
-        timeoutPlayed = false;
-        updateTimerDisplay();
-        isTimerRunning = false;
-    }
+    function resetTimerOnly() { stopTimer(); timeLeft = 60; timeoutPlayed = false; updateTimerDisplay(); isTimerRunning = false; }
     
     startTimerBtn.addEventListener('click', () => {
-        if (gameLocked) { alert('Раунд уже завершён! Нажмите «ОЧИСТИТЬ» для нового вопроса.'); return; }
-        resetTimer();
+        if (gameLocked) { alert('Раунд завершён! Нажмите «ОЧИСТИТЬ ВСЁ» для нового вопроса.'); return; }
+        resetTimerOnly();
         startTimer();
     });
-    resetTimerBtn.addEventListener('click', () => { resetTimer(); });
+    resetTimerBtn.addEventListener('click', () => { resetTimerOnly(); });
     
-    // ========== ИГРОВАЯ ЛОГИКА ==========
+    // ПРОДОЛЖИТЬ — снимает блокировку, таймер продолжается с текущего времени
+    continueBtn.addEventListener('click', () => {
+        if (!gameLocked && winner === null) { alert('Сейчас никто не нажимал. Не нужно продолжать.'); return; }
+        gameLocked = false;
+        winner = null;
+        // НЕ сбрасываем таймер! Он продолжает идти с того же места
+        buzzRef.set({ winner: null, timestamp: null, foul: null });
+        gameStateRef.set({ locked: false });
+        updateUI();
+    });
+    
+    // ПОЛНЫЙ СБРОС (новый вопрос)
+    function resetGame() {
+        gameLocked = false;
+        winner = null;
+        foulA = false; foulB = false;
+        resetTimerOnly();
+        buzzRef.set({ winner: null, timestamp: null, foul: null });
+        gameStateRef.set({ locked: false });
+        updateUI();
+    }
+    resetBtn.addEventListener('click', resetGame);
+    
+    // UI
     const teamACard = document.getElementById('teamACard'), teamBCard = document.getElementById('teamBCard');
     const teamAStatus = document.getElementById('teamAStatus'), teamBStatus = document.getElementById('teamBStatus');
     const teamAGlow = document.getElementById('teamAGlow'), teamBGlow = document.getElementById('teamBGlow');
     const teamAFoul = document.getElementById('teamAFoul'), teamBFoul = document.getElementById('teamBFoul');
-    const resetBtn = document.getElementById('resetBtn');
     
     function updateUI() {
         if (winner === 'A') {
@@ -343,26 +270,14 @@
         teamBFoul.style.display = foulB ? 'block' : 'none';
     }
     
-    function resetGame() {
-        gameLocked = false;
-        winner = null;
-        foulA = false; foulB = false;
-        resetTimer();
-        buzzRef.set({ winner: null, timestamp: null, foul: null });
-        gameStateRef.set({ locked: false });
-        updateUI();
-    }
-    
+    // Слушаем нажатия
     buzzRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data || !data.winner || !data.timestamp) return;
         if (gameLocked) return;
-        
-        const now = Date.now();
-        if (now - data.timestamp > 5000) return;
-        
+        if (Date.now() - data.timestamp > 5000) return;
         const team = data.winner;
-        
+        // Фальстарт
         if (!isTimerRunning || timeLeft === 60) {
             if (team === 'A') foulA = true;
             else foulB = true;
@@ -370,9 +285,7 @@
             buzzRef.set({ winner: null, timestamp: null, foul: team });
             return;
         }
-        
         if ((team === 'A' && foulA) || (team === 'B' && foulB)) return;
-        
         if (!gameLocked) {
             gameLocked = true;
             winner = team;
@@ -382,18 +295,16 @@
         }
     });
     
-    resetBtn.addEventListener('click', resetGame);
-    
-    // ========== QR-коды ==========
+    // QR-коды
     const baseUrl = window.location.href.split('?')[0].split('#')[0];
     const cleanBase = baseUrl.endsWith('index.html') ? baseUrl.replace('index.html', '') : baseUrl;
     const teamAUrl = `${cleanBase}?team=A`, teamBUrl = `${cleanBase}?team=B`;
     document.getElementById('linkA').innerText = teamAUrl;
     document.getElementById('linkB').innerText = teamBUrl;
-    new QRCode(document.getElementById("qrcodeA"), { text: teamAUrl, width: 160, height: 160, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-    new QRCode(document.getElementById("qrcodeB"), { text: teamBUrl, width: 160, height: 160, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+    new QRCode(document.getElementById("qrcodeA"), { text: teamAUrl, width: 160, height: 160 });
+    new QRCode(document.getElementById("qrcodeB"), { text: teamBUrl, width: 160, height: 160 });
     
-    // ========== ТЕЛЕФОННЫЙ РЕЖИМ ==========
+    // Телефонный режим (без изменений)
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get('team');
     if (teamParam === 'A' || teamParam === 'B') {
@@ -419,7 +330,6 @@
         document.body.appendChild(container);
         
         let canBuzz = true, localLock = false, foulDetected = false;
-        
         gameStateRef.on('value', (snap) => {
             const data = snap.val();
             if (data && data.locked && data.winner === teamParam) {
@@ -427,7 +337,6 @@
                 buzzBtn.disabled = true; canBuzz = false;
             }
         });
-        
         buzzRef.on('value', (snap) => {
             const data = snap.val();
             if (data && data.foul === teamParam) {
@@ -446,7 +355,6 @@
                 buzzBtn.disabled = true; canBuzz = false;
             }
         });
-        
         async function sendBuzz() {
             if (!canBuzz || localLock || foulDetected) {
                 statusMsg.innerText = '⛔ Нельзя нажимать сейчас!';
